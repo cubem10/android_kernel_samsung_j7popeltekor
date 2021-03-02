@@ -836,7 +836,7 @@ translate_table(struct net *net, struct xt_table_info *newinfo, void *entry0,
 		if (strcmp(ipt_get_target(iter)->u.user.name,
 		    XT_ERROR_TARGET) == 0)
 			++newinfo->stacksize;
-	}
+		}
 
 	ret = -EINVAL;
 	if (i != repl->num_entries) {
@@ -1483,8 +1483,11 @@ check_compat_entry_size_and_hooks(struct compat_ipt_entry *e,
 		return -EINVAL;
 	}
 
-	/* For purposes of check_entry casting the compat entry is fine */
-	ret = check_entry((struct ipt_entry *)e);
+	if (!ip_checkentry(&e->ip))
+		return -EINVAL;
+
+	ret = xt_compat_check_entry_offsets(e, e->elems,
+					    e->target_offset, e->next_offset);
 	if (ret)
 		return ret;
 
